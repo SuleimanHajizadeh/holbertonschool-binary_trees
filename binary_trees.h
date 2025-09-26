@@ -95,6 +95,6 @@ int heap_extract(heap_t **root);
 int *heap_to_sorted_array(heap_t *heap, size_t *size);
 int binary_tree_is_avl(const binary_tree_t *tree);
 avl_t *avl_insert(avl_t **tree, int value);
-
+avl_t *avl_remove(avl_t *root, int value);
 
 #endif /* BINARY_TREES_H */
