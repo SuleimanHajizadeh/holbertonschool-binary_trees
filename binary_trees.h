@@ -97,5 +97,6 @@ int binary_tree_is_avl(const binary_tree_t *tree);
 avl_t *avl_insert(avl_t **tree, int value);
 avl_t *avl_remove(avl_t *root, int value);
 int binary_tree_is_heap(const binary_tree_t *tree);
+int heap_extract(heap_t **root);
 
 #endif /* BINARY_TREES_H */
