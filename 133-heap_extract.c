@@ -3,113 +3,42 @@
 #include <stdlib.h>
 
 /**
- * heap_size - Counts the number of nodes in a heap
- * @root: Pointer to the root node
- * Return: Number of nodes
- */
-size_t heap_size(heap_t *root)
-{
-	size_t left_size, right_size;
-
-	if (!root)
-		return (0);
-
-	left_size = heap_size(root->left);
-	right_size = heap_size(root->right);
-
-	return (1 + left_size + right_size);
-}
-
-/**
- * heap_last_node - Find the last node in the heap
- * @root: Pointer to the root node
- * @index: Current node index in level-order traversal
- * @size: Total number of nodes in heap
- * Return: Pointer to the last node
- */
-heap_t *heap_last_node(heap_t *root, size_t index, size_t size)
-{
-	if (!root)
-		return (NULL);
-
-	if (index == size)
-		return (root);
-
-	/* Level-order traversal: left child index = 2*index, right = 2*index+1 */
-	{
-		heap_t *left, *right;
-
-		left = heap_last_node(root->left, 2 * index, size);
-		if (left)
-			return (left);
-
-		right = heap_last_node(root->right, 2 * index + 1, size);
-		return (right);
-	}
-}
-
-/**
- * swap_nodes - Swap values of two heap nodes
- * @a: First node
- * @b: Second node
- */
-void swap_nodes(heap_t *a, heap_t *b)
-{
-	int temp = a->n;
-	a->n = b->n;
-	b->n = temp;
-}
-
-/**
- * heapify_down - Restores Max Heap property
- * @node: Node to heapify down
- */
-void heapify_down(heap_t *node)
-{
-	heap_t *largest = node;
-
-	if (node->left && node->left->n > largest->n)
-		largest = node->left;
-
-	if (node->right && node->right->n > largest->n)
-		largest = node->right;
-
-	if (largest != node)
-	{
-		swap_nodes(node, largest);
-		heapify_down(largest);
-	}
-}
-
-/**
- * heap_extract - Extract the root node of a Max Binary Heap
- * @root: Pointer to pointer to root node
- * Return: Value stored in extracted root
+ * heap_extract - Extracts the root node of a Max Binary Heap
+ * @root: Double pointer to the root of the heap
+ * Return: Value stored in the root node
  */
 int heap_extract(heap_t **root)
 {
-	heap_t *last, *tmp;
-	int value, size;
+	heap_t *node, *last;
+	int value;
 
 	if (!root || !*root)
 		return (0);
 
-	value = (*root)->n;
-	size = (int)heap_size(*root);
+	node = *root;
+	value = node->n;
 
-	if (size == 1)
+	if (!node->left && !node->right)
 	{
-		free(*root);
+		free(node);
 		*root = NULL;
 		return (value);
 	}
 
-	last = heap_last_node(*root, 1, size);
+	/* Find the last node to replace root */
+	last = node;
+	while (last->left || last->right)
+	{
+		if (last->right)
+			last = last->right;
+		else if (last->left)
+			last = last->left;
+	}
 
-	/* Move last node value to root */
-	(*root)->n = last->n;
+	/* Swap values */
+	node->n = last->n;
 
-	/* Remove last node from tree */
+	/* Remove last node */
 	if (last->parent->left == last)
 		last->parent->left = NULL;
 	else
@@ -117,7 +46,24 @@ int heap_extract(heap_t **root)
 
 	free(last);
 
-	heapify_down(*root);
+	/* Rebalance heap */
+	while (node)
+	{
+		heap_t *largest = node;
+		heap_t *left = node->left;
+		heap_t *right = node->right;
 
-	return (value);
+		if (left && left->n > largest->n)
+			largest = left;
+		if (right && right->n > largest->n)
+			largest = right;
+		if (largest == node)
+			break;
+		value = node->n;
+		node->n = largest->n;
+		largest->n = value;
+		node = largest;
+	}
+
+	return (*root ? (*root)->n : 0);
 }
